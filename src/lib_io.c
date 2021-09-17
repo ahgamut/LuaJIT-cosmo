@@ -330,7 +330,7 @@ LJLIB_CF(io_method_seek)
 #elif _MSC_VER >= 1400
   res = _fseeki64(fp, ofs, opt);
 #elif defined(__MINGW32__)
-  res = fseeko64(fp, ofs, opt);
+  res = fseeko(fp, ofs, opt);
 #else
   res = fseek(fp, (long)ofs, opt);
 #endif

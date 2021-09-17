@@ -62,7 +62,7 @@
 */
 
 #if defined(__GNUC__) && (LJ_TARGET_X64 || defined(LUAJIT_UNWIND_EXTERNAL)) && !LJ_NO_UNWIND
-#define LJ_UNWIND_EXT	1
+#define LJ_UNWIND_EXT	0
 #elif LJ_TARGET_WINDOWS
 #define LJ_UNWIND_EXT	1
 #endif
@@ -183,7 +183,7 @@ static void *err_unwind(lua_State *L, void *stopcf, int errcode)
 
 /* -- External frame unwinding -------------------------------------------- */
 
-#if defined(__GNUC__) && !LJ_NO_UNWIND && !LJ_ABI_WIN
+#if 0 && defined(__GNUC__) && !LJ_NO_UNWIND && !LJ_ABI_WIN
 
 /*
 ** We have to use our own definitions instead of the mandatory (!) unwind.h,

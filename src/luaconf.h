@@ -149,4 +149,9 @@
 #define luai_apicheck(L, o)	{ (void)L; }
 #endif
 
+#define mmap64(...) mmap(__VA_ARGS__)
+#define fopen64(...) fopen(__VA_ARGS__)
+#define fseeko64(...) fseeko(__VA_ARGS__)
+#define mkstemp64(...) mkstemp(__VA_ARGS__)
+
 #endif

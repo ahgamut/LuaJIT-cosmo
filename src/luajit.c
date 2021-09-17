@@ -248,6 +248,7 @@ static void dotty(lua_State *L)
   int status;
   const char *oldprogname = progname;
   progname = NULL;
+  setvbuf(stdin, NULL, _IONBF, BUFSIZ);
   while ((status = loadline(L)) != -1) {
     if (status == LUA_OK) status = docall(L, 0, 0);
     report(L, status);

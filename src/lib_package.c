@@ -32,7 +32,7 @@
 #define SYMPREFIX_CF		"luaopen_%s"
 #define SYMPREFIX_BC		"luaJIT_BC_%s"
 
-#if LJ_TARGET_DLOPEN
+#if 0 && LJ_TARGET_DLOPEN
 
 #include <dlfcn.h>
 

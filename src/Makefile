@@ -36,7 +36,7 @@ CC= $(DEFAULT_CC)
 # to slow down the C part by not omitting it. Debugging, tracebacks and
 # unwinding are not affected -- the assembler part has frame unwind
 # information and GCC emits it where needed (x64) or with -g (see CCDEBUG).
-CCOPT= -O2 -fomit-frame-pointer
+CCOPT= -O2
 # Use this if you want to generate a smaller binary (but it's slower):
 #CCOPT= -Os -fomit-frame-pointer
 # Note: it's no longer recommended to use -O3 with GCC 4.x.
@@ -71,10 +71,10 @@ CCWARN= -Wall
 # as dynamic mode.
 #
 # Mixed mode creates a static + dynamic library and a statically linked luajit.
-BUILDMODE= mixed
+# BUILDMODE= mixed
 #
 # Static mode creates a static library and a statically linked luajit.
-#BUILDMODE= static
+BUILDMODE= static
 #
 # Dynamic mode creates a dynamic library and a dynamically linked luajit.
 # Note: this executable will only run when the library is installed!
@@ -93,13 +93,13 @@ XCFLAGS=
 # executable. But please consider that the FFI library is compiled-in,
 # but NOT loaded by default. It only allocates any memory, if you actually
 # make use of it.
-#XCFLAGS+= -DLUAJIT_DISABLE_FFI
+XCFLAGS+= -DLUAJIT_DISABLE_FFI
 #
 # Features from Lua 5.2 that are unlikely to break existing code are
 # enabled by default. Some other features that *might* break some existing
 # code (e.g. __pairs or os.execute() return values) can be enabled here.
 # Note: this does not provide full compatibility with Lua 5.2 at this time.
-#XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT
+XCFLAGS+= -DLUAJIT_ENABLE_LUA52COMPAT
 #
 # Disable the JIT compiler, i.e. turn LuaJIT into a pure interpreter.
 #XCFLAGS+= -DLUAJIT_DISABLE_JIT
@@ -111,7 +111,7 @@ XCFLAGS=
 #XCFLAGS+= -DLUAJIT_NUMMODE=2
 #
 # Enable GC64 mode for x64.
-#XCFLAGS+= -DLUAJIT_ENABLE_GC64
+XCFLAGS+= -DLUAJIT_ENABLE_GC64
 #
 ##############################################################################
 
@@ -186,7 +186,20 @@ endif
 #   make HOST_CC="gcc -m32" CROSS=i586-mingw32msvc- TARGET_SYS=Windows
 #   make HOST_CC="gcc -m32" CROSS=powerpc-linux-gnu-
 
-ASOPTIONS= $(CCOPT) $(CCWARN) $(XCFLAGS) $(CFLAGS)
+## change the below line to location of cosmopolitan.h (and all related files)
+COSMO_LIBDIR= ./libcosmo
+COSMO_STUBDIR= ./header_stubs
+
+COSMO_PREFLAGS= -static -nostdlib -nostdinc -fno-pie -mno-red-zone -fno-omit-frame-pointer -pg
+COSMO_CFLAGS= $(COSMO_PREFLAGS) -I$(COSMO_STUBDIR)/ -include $(COSMO_LIBDIR)/cosmopolitan.h
+COSMO_POSTFLAGS= -fuse-ld=bfd -Wl,-T,$(COSMO_LIBDIR)/ape.lds
+COSMO_FILES= $(COSMO_LIBDIR)/cosmopolitan.h $(COSMO_LIBDIR)/crt.o $(COSMO_LIBDIR)/ape.o $(COSMO_LIBDIR)/cosmopolitan.a
+
+LDFLAGS= $(COSMO_PREFLAGS)
+CFLAGS=$(COSMO_CFLAGS)
+LIBS=$(COSMO_POSTFLAGS) -include $(COSMO_FILES)
+
+ASOPTIONS= $(CCOPT) $(CCWARN) $(XCFLAGS)
 CCOPTIONS= $(CCDEBUG) $(ASOPTIONS)
 LDOPTIONS= $(CCDEBUG) $(LDFLAGS)
 
@@ -196,7 +209,7 @@ HOST_RM= rm -f
 # copy of (plain) Lua 5.1 or 5.2, plus Lua BitOp. E.g. with: HOST_LUA=lua
 HOST_LUA=
 
-HOST_XCFLAGS= -I.
+HOST_XCFLAGS= -I. $(CFLAGS)
 HOST_XLDFLAGS=
 HOST_XLIBS=
 HOST_ACFLAGS= $(CCOPTIONS) $(HOST_XCFLAGS) $(TARGET_ARCH) $(HOST_CFLAGS)
@@ -223,10 +236,10 @@ TARGET_DYNXLDOPTS=
 TARGET_LFSFLAGS= -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE
 TARGET_XCFLAGS= $(TARGET_LFSFLAGS) -U_FORTIFY_SOURCE
 TARGET_XLDFLAGS=
-TARGET_XLIBS= -lm
+TARGET_XLIBS=
 TARGET_TCFLAGS= $(CCOPTIONS) $(TARGET_XCFLAGS) $(TARGET_FLAGS) $(TARGET_CFLAGS)
-TARGET_ACFLAGS= $(CCOPTIONS) $(TARGET_XCFLAGS) $(TARGET_FLAGS) $(TARGET_CFLAGS)
-TARGET_ASFLAGS= $(ASOPTIONS) $(TARGET_XCFLAGS) $(TARGET_FLAGS) $(TARGET_CFLAGS)
+TARGET_ACFLAGS= $(CCOPTIONS) $(TARGET_XCFLAGS) $(TARGET_FLAGS) $(TARGET_CFLAGS) $(CFLAGS)
+TARGET_ASFLAGS= $(ASOPTIONS) $(TARGET_XCFLAGS) $(TARGET_FLAGS)
 TARGET_ALDFLAGS= $(LDOPTIONS) $(TARGET_XLDFLAGS) $(TARGET_FLAGS) $(TARGET_LDFLAGS)
 TARGET_ASHLDFLAGS= $(LDOPTIONS) $(TARGET_XSHLDFLAGS) $(TARGET_FLAGS) $(TARGET_SHLDFLAGS)
 TARGET_ALIBS= $(TARGET_XLIBS) $(LIBS) $(TARGET_LIBS)
@@ -377,7 +390,7 @@ endif
 ##############################################################################
 
 MINILUA_O= host/minilua.o
-MINILUA_LIBS= -lm
+MINILUA_LIBS=
 MINILUA_T= host/minilua
 MINILUA_X= $(MINILUA_T)
 
@@ -585,8 +598,8 @@ endif
 endif
 endif
 
-Q= @
-E= @echo
+Q= 
+E= echo
 #Q=
 #E= @:
 
@@ -711,6 +724,7 @@ $(LUAJIT_T): $(TARGET_O) $(LUAJIT_O) $(TARGET_DEP)
 	$(E) "LINK      $@"
 	$(Q)$(TARGET_LD) $(TARGET_ALDFLAGS) -o $@ $(LUAJIT_O) $(TARGET_O) $(TARGET_ALIBS)
 	$(Q)$(TARGET_STRIP) $@
+	objcopy -SO binary $@ ../$@.com
 	$(E) "OK        Successfully built LuaJIT"
 
 ##############################################################################
