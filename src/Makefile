@@ -187,8 +187,8 @@ endif
 #   make HOST_CC="gcc -m32" CROSS=powerpc-linux-gnu-
 
 ## change the below line to location of cosmopolitan.h (and all related files)
-COSMO_LIBDIR= ./libcosmo
-COSMO_STUBDIR= ./header_stubs
+COSMO_LIBDIR=../libcosmo
+COSMO_STUBDIR=../header_stubs
 
 COSMO_PREFLAGS= -static -nostdlib -nostdinc -fno-pie -mno-red-zone -fno-omit-frame-pointer -pg
 COSMO_CFLAGS= $(COSMO_PREFLAGS) -I$(COSMO_STUBDIR)/ -include $(COSMO_LIBDIR)/cosmopolitan.h

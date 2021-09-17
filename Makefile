@@ -160,6 +160,7 @@ amalg:
 
 clean:
 	$(MAKE) -C src clean
+	rm luajit.com
 
 .PHONY: all install amalg clean
 
