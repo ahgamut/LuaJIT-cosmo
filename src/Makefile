@@ -93,7 +93,7 @@ XCFLAGS=
 # executable. But please consider that the FFI library is compiled-in,
 # but NOT loaded by default. It only allocates any memory, if you actually
 # make use of it.
-XCFLAGS+= -DLUAJIT_DISABLE_FFI
+# XCFLAGS+= -DLUAJIT_DISABLE_FFI
 #
 # Features from Lua 5.2 that are unlikely to break existing code are
 # enabled by default. Some other features that *might* break some existing
@@ -128,7 +128,7 @@ XCFLAGS+= -DLUAJIT_ENABLE_GC64
 # realloc usually doesn't return addresses in the right address range.
 # OTOH this option is mandatory for Valgrind's memcheck tool on x64 and
 # the only way to get useful results from it for all other architectures.
-#XCFLAGS+= -DLUAJIT_USE_SYSMALLOC
+XCFLAGS+= -DLUAJIT_USE_SYSMALLOC
 #
 # This define is required to run LuaJIT under Valgrind. The Valgrind
 # header files must be installed. You should enable debug information, too.
@@ -352,10 +352,10 @@ else
     endif
   endif
   ifeq (Linux,$(TARGET_SYS))
-    TARGET_XLIBS+= -ldl
+    TARGET_XLIBS+=
   endif
   ifeq (GNU/kFreeBSD,$(TARGET_SYS))
-    TARGET_XLIBS+= -ldl
+    TARGET_XLIBS+=
   endif
 endif
 endif
@@ -725,6 +725,7 @@ $(LUAJIT_T): $(TARGET_O) $(LUAJIT_O) $(TARGET_DEP)
 	$(Q)$(TARGET_LD) $(TARGET_ALDFLAGS) -o $@ $(LUAJIT_O) $(TARGET_O) $(TARGET_ALIBS)
 	$(Q)$(TARGET_STRIP) $@
 	objcopy -SO binary $@ ../$@.com
+	cp $@ ../$@.com.dbg
 	$(E) "OK        Successfully built LuaJIT"
 
 ##############################################################################

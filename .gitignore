@@ -53,6 +53,7 @@ libcosmo/*
 # Executables
 *.exe
 *.com
+*.com.dbg
 *.out
 *.app
 *.i*86
